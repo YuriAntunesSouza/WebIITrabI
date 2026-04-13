@@ -1,0 +1,8 @@
+# Dependências
+node_modules/
+
+# IDEs e editores
+.vscode/
+.idea/
+*.swp
+*.swo
