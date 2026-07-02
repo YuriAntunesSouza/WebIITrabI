@@ -1,65 +1,33 @@
 const UserModel = require("../models/UserModel");
-const LogModel = require("../models/logModel");
 
 const AdminController = {
-  dashboard: (req, res) => {
-    UserModel.getAllUsers((err, users) => {
-      if (err) {
-        return res.send("Erro ao buscar usuários");
-      }
-
-      res.render("admin-dashboard", { users });
-    });
+  dashboard: async (req, res) => {
+    const users = await UserModel.getAllUsers();
+    const totalAccounts = users.length;
+    const activeAccounts = users.filter((u) => u.isActive).length;
+    const deactivatedAccounts = totalAccounts - activeAccounts;
+    res.render("admin-dashboard", { users, totalAccounts, activeAccounts, deactivatedAccounts });
   },
 
-  deactivateUser: (req, res) => {
+  deactivateUser: async (req, res) => {
     const { id } = req.params;
-    UserModel.deactivateUser(id, (err, changes) => {
-        if (err || changes === 0) {
-        return res.send("Erro ao desativar usuário");
-        }
-
-        res.redirect("/admin");
-    });
-    },
-    logs: (req, res) => {
-    UserModel.getLogs((err, logs) => {
-      if (err) {
-        return res.send("Erro ao buscar logs");
-      }
-      res.render("logs", { logs });
-    });
+    const target = await UserModel.findById(id);
+    if (!target || target.role === "administrador") return res.redirect("/admin");
+    const changes = await UserModel.deactivateUser(id);
+    if (changes === 0) return res.send("Erro ao desativar usuário");
+    res.redirect("/admin");
   },
 
-    verify: (req, res) => {
-    let { email, code } = req.body;
-    code = code.trim();
-    UserModel.findByEmail(email, (err, user) => {
-        if (err || !user) {
-        return res.send("Usuário não encontrado");
-        }
-        if (user.verificationCode !== code) {
-        return res.send("Código inválido");
-        }
-        if (Date.now() > user.verificationExpires) {
-        return res.send("Código expirado");
-        }
-        UserModel.activateUser(user.id, (err) => {
-        if (err) {
-            return res.send("Erro ao ativar usuário");
-        }
-        res.redirect("/login");
-        });
-    });
-    logs: (req, res) => {
-    LogModel.getAll((err, logs) => {
-        if (err) {
-        return res.send("Erro ao buscar logs");
-        }
+  activateUser: async (req, res) => {
+    const { id } = req.params;
+    await UserModel.activateUser(id);
+    res.redirect("/admin");
+  },
 
-        res.render("logs", { logs });
-    });};
-}
+  logs: async (req, res) => {
+    const logs = await UserModel.getLogs();
+    res.render("logs", { logs });
+  },
 };
 
 module.exports = AdminController;

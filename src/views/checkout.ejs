@@ -53,37 +53,54 @@
               <% } %>
             </ul>
           </nav>
+          <div class="flex items-center gap-2">
+            <% if (user) { %>
+              <a href="/logout" class="rounded-full border border-brand-300 px-4 py-2 text-sm font-semibold hover:bg-brand-100">LogOut</a>
+            <% } else { %>
+              <a href="/login" class="rounded-full border border-brand-300 px-4 py-2 text-sm font-semibold hover:bg-brand-100">Entrar</a>
+              <a href="/signup" class="rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-brand-50 hover:bg-brand-800">Criar conta</a>
+            <% } %>
+          </div>
         </div>
       </header>
 
       <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <h1 class="font-display text-3xl font-bold">Finalização da compra</h1>
         <section class="grid gap-6 lg:grid-cols-3">
-          <form class="space-y-4 rounded-3xl border border-brand-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <h2 class="font-display text-xl font-bold">Informações de entrega</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
-              <input type="text" placeholder="Nome" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring" />
-              <input type="text" placeholder="Sobrenome" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring" />
-              <input type="text" placeholder="Endereço" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring sm:col-span-2" />
-              <input type="text" placeholder="Cidade" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring" />
-              <input type="text" placeholder="CEP" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring" />
+          <form action="/checkout" method="POST" class="space-y-4 rounded-3xl border border-brand-200 bg-white p-6 shadow-sm lg:col-span-2">
+            <h2 class="font-display text-xl font-bold">Confirmar pedido</h2>
+            <div class="space-y-2">
+              <% items.forEach(item => { %>
+                <% const img = item.product.Images.find(i => i.isPrimary) || item.product.Images[0]; %>
+                <div class="flex items-center gap-3 rounded-xl border border-brand-200 p-3">
+                  <% if (img) { %>
+                    <img src="<%= img.imageUrl %>" class="h-12 w-12 rounded-lg object-cover flex-shrink-0" />
+                  <% } %>
+                  <div class="flex-1">
+                    <p class="font-semibold"><%= item.product.name %></p>
+                    <p class="text-sm text-brand-700">Qtd: <%= item.quantity %></p>
+                  </div>
+                  <p class="font-bold text-coral-600">R$ <%= item.subtotal.toFixed(2) %></p>
+                </div>
+              <% }) %>
             </div>
-            <h2 class="pt-2 font-display text-xl font-bold">Pagamento</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
-              <input type="text" placeholder="Nome no cartão" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring sm:col-span-2" />
-              <input type="text" placeholder="Número do cartão" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring sm:col-span-2" />
-              <input type="text" placeholder="MM/AA" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring" />
-              <input type="text" placeholder="CVV" class="rounded-xl border border-brand-300 px-4 py-2.5 outline-none ring-accent-500 focus:ring" />
-            </div>
-            <button type="button" class="w-full rounded-xl bg-brand-900 px-4 py-2.5 font-semibold text-brand-50 hover:bg-brand-800">Finalizar pedido</button>
+            <% if (profile) { %>
+              <div class="rounded-xl bg-brand-100 p-4 text-sm text-brand-800">
+                <p class="font-semibold">Endereço de entrega</p>
+                <p class="mt-1"><%= profile.address %>, <%= profile.city %> - <%= profile.state %>, CEP <%= profile.zipCode %></p>
+              </div>
+            <% } else { %>
+              <div class="rounded-xl bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800">
+                Sem endereço cadastrado. <a href="/buyer/profile" class="font-semibold underline">Adicionar endereço</a>
+              </div>
+            <% } %>
+            <button type="submit" class="w-full rounded-xl bg-brand-900 px-4 py-2.5 font-semibold text-brand-50 hover:bg-brand-800">Confirmar pedido</button>
           </form>
 
           <aside class="rounded-3xl border border-brand-200 bg-white p-6 shadow-sm">
             <h2 class="font-display text-xl font-bold">Total do pedido</h2>
             <div class="mt-4 space-y-2 text-sm text-brand-700">
-              <div class="flex justify-between"><span>Subtotal</span><span>$698</span></div>
-              <div class="flex justify-between"><span>Frete</span><span>$12</span></div>
-              <div class="flex justify-between font-bold text-brand-900"><span>Total</span><span>$710</span></div>
+              <div class="flex justify-between font-bold text-brand-900 text-base"><span>Total</span><span>R$ <%= total.toFixed(2) %></span></div>
             </div>
           </aside>
         </section>

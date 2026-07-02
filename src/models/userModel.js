@@ -1,87 +1,61 @@
-const db = require("../database/db");
+const prisma = require("../config/prisma");
 
 const userModel = {
-  create: (user, callback) => {
-    const sql = `
-      INSERT INTO users (name, email, password, role, verificationCode, verificationExpires)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-
-    db.run(
-      sql,
-      [
-        user.name,
-        user.email,
-        user.password,
-        user.role,
-        user.verificationCode,
-        user.verificationExpires
-      ],
-      function (err) {
-        callback(err, this?.lastID);
-      }
-    );
+  create: async (user) => {
+    return prisma.user.create({ data: user });
   },
 
-  findByEmail: (email, callback) => {
-    db.get("SELECT * FROM users WHERE email = ?", [email], callback);
+  findByEmail: async (email) => {
+    return prisma.user.findUnique({ where: { email } });
   },
 
-  verifyUser: (email, code, callback) => {
-  const sql = `
-    UPDATE users
-    SET isVerified = 1, isActive = 1
-    WHERE email = ?
-      AND verificationCode = ?
-      AND verificationExpires > ?
-  `;
-
-  db.run(sql, [email, code, Date.now()], function (err) {
-    callback(err, this.changes);
-  });},
-
-  updateVerificationCode: (email, code, expires, callback) => {
-  const sql = `
-    UPDATE users
-    SET verificationCode = ?, verificationExpires = ?
-    WHERE email = ?
-  `;
-
-  db.run(sql, [code, expires, email], function (err) {
-    callback(err, this.changes);
-  });},
-
-  getAllUsers: (callback) => {
-  db.all("SELECT * FROM users", [], callback);
+  findById: async (id) => {
+    return prisma.user.findUnique({ where: { id: Number(id) } });
   },
 
-  deactivateUser: (id, callback) => {
-    const sql = `
-      UPDATE users
-      SET isActive = 0
-      WHERE id = ?
-    `;
+  verifyUser: async (email, code) => {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return 0;
+    if (user.verificationCode !== code) return 0;
+    if (Date.now() > user.verificationExpires) return 0;
 
-    db.run(sql, [id], function (err) {
-      callback(err, this.changes);
+    await prisma.user.update({
+      where: { email },
+      data: { isVerified: 1, isActive: 1 },
+    });
+    return 1;
+  },
+
+  updateVerificationCode: async (email, code, expires) => {
+    const result = await prisma.user.updateMany({
+      where: { email },
+      data: { verificationCode: code, verificationExpires: expires },
+    });
+    return result.count;
+  },
+
+  getAllUsers: async () => {
+    return prisma.user.findMany({ orderBy: { id: "asc" } });
+  },
+
+  deactivateUser: async (id) => {
+    const result = await prisma.user.updateMany({
+      where: { id: Number(id) },
+      data: { isActive: 0 },
+    });
+    return result.count;
+  },
+
+  activateUser: async (id) => {
+    await prisma.user.update({
+      where: { id: Number(id) },
+      data: { isVerified: 1, isActive: 1 },
     });
   },
-  activateUser: (id, callback) => {
-  const sql = `
-    UPDATE users
-    SET isVerified = 1, isActive = 1
-    WHERE id = ?
-  `;
 
-  db.run(sql, [id], function (err) {
-    callback(err);
-  });
+  getLogs: async () => {
+    return prisma.log.findMany({ orderBy: { createdAt: "desc" } });
   },
-
-  getLogs: (callback) => {
-    db.all("SELECT * FROM logs ORDER BY createdAt DESC", [], callback);
-  }
-
-  };
+};
 
 module.exports = userModel;

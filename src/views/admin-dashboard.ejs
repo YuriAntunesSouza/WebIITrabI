@@ -53,6 +53,14 @@
               <% } %>
             </ul>
           </nav>
+          <div class="flex items-center gap-2">
+            <% if (user) { %>
+              <a href="/logout" class="rounded-full border border-brand-300 px-4 py-2 text-sm font-semibold hover:bg-brand-100">LogOut</a>
+            <% } else { %>
+              <a href="/login" class="rounded-full border border-brand-300 px-4 py-2 text-sm font-semibold hover:bg-brand-100">Entrar</a>
+              <a href="/signup" class="rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-brand-50 hover:bg-brand-800">Criar conta</a>
+            <% } %>
+          </div>
         </div>
       </header>
 
@@ -71,15 +79,15 @@
           <div class="mt-5 grid gap-3 sm:grid-cols-3">
             <div class="rounded-2xl bg-brand-100 p-4">
               <p class="text-xs font-semibold uppercase tracking-wider">Contas totais</p>
-              <p id="total-accounts" class="mt-2 font-display text-3xl font-bold">4</p>
+              <p id="total-accounts" class="mt-2 font-display text-3xl font-bold"><%= totalAccounts %></p>
             </div>
             <div class="rounded-2xl bg-brand-100 p-4">
               <p class="text-xs font-semibold uppercase tracking-wider">Contas ativas</p>
-              <p id="active-accounts" class="mt-2 font-display text-3xl font-bold">3</p>
+              <p id="active-accounts" class="mt-2 font-display text-3xl font-bold"><%= activeAccounts %></p>
             </div>
             <div class="rounded-2xl bg-brand-100 p-4">
               <p class="text-xs font-semibold uppercase tracking-wider">Contas desativadas</p>
-              <p id="deactivated-today" class="mt-2 font-display text-3xl font-bold">1</p>
+              <p id="deactivated-today" class="mt-2 font-display text-3xl font-bold"><%= deactivatedAccounts %></p>
             </div>
           </div>
         </section>
@@ -110,21 +118,28 @@
               </thead>
               <tbody class="divide-y divide-brand-200 bg-white">
                 <% users.forEach(user => { %>
-                  <tr>
-                    <td><%= user.id %></td>
-                    <td><%= user.name %></td>
-                    <td><%= user.email %></td>
-                    <td><%= user.role %></td>
-                    <td>
-                      <%= user.isActive ? "Ativo" : "Inativo" %>
+                  <tr data-account-row>
+                    <td class="px-4 py-3"><%= user.name %></td>
+                    <td class="px-4 py-3"><%= user.role %></td>
+                    <td class="px-4 py-3"><%= user.email %></td>
+                    <td class="px-4 py-3">—</td>
+                    <td class="px-4 py-3">
+                      <span data-account-status="<%= user.isActive ? 'active' : 'inactive' %>"
+                            class="rounded-full px-2 py-1 text-xs font-semibold <%= user.isActive ? 'bg-accent-500/10 text-accent-600' : 'bg-brand-200 text-brand-700' %>">
+                        <%= user.isActive ? "Ativa" : "Desativada" %>
+                      </span>
                     </td>
-                    <td>
-                    <% if (user.isActive) { %>
+                    <td class="px-4 py-3">
+                    <% if (user.role === 'administrador') { %>
+                      <span class="text-xs text-brand-500 italic">Protegida</span>
+                    <% } else if (user.isActive) { %>
                       <form action="/admin/deactivate/<%= user.id %>" method="POST">
-                        <button type="submit">Desativar</button>
+                        <button type="submit" class="rounded-lg border border-coral-500 px-3 py-1.5 text-sm font-semibold text-coral-600 hover:bg-coral-50">Desativar</button>
                       </form>
                     <% } else { %>
-                      <span>Inativo</span>
+                      <form action="/admin/activate/<%= user.id %>" method="POST">
+                        <button type="submit" class="rounded-lg border border-accent-500 px-3 py-1.5 text-sm font-semibold text-accent-600 hover:bg-accent-50">Ativar</button>
+                      </form>
                     <% } %>
                   </td>
                   </tr>

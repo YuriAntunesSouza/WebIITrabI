@@ -1,19 +1,16 @@
-const db = require("../database/db");
+const prisma = require("../config/prisma");
 
 const LogModel = {
-  create: ({ userId, method, route, description }) => {
-    const sql = `
-      INSERT INTO logs (userId, method, route, description)
-      VALUES (?, ?, ?, ?)
-    `;
-
-    db.run(sql, [
-      userId || null,
-      method,
-      route,
-      description
-    ]);
-  }
+  create: async ({ userId, method, route, description }) => {
+    await prisma.log.create({
+      data: {
+        userId: userId || null,
+        method,
+        route,
+        description,
+      },
+    });
+  },
 };
 
 module.exports = LogModel;

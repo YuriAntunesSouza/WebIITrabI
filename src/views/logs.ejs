@@ -53,6 +53,14 @@
               <% } %>
             </ul>
           </nav>
+          <div class="flex items-center gap-2">
+            <% if (user) { %>
+              <a href="/logout" class="rounded-full border border-brand-300 px-4 py-2 text-sm font-semibold hover:bg-brand-100">LogOut</a>
+            <% } else { %>
+              <a href="/login" class="rounded-full border border-brand-300 px-4 py-2 text-sm font-semibold hover:bg-brand-100">Entrar</a>
+              <a href="/signup" class="rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-brand-50 hover:bg-brand-800">Criar conta</a>
+            <% } %>
+          </div>
         </div>
       </header>
 
